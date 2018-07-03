@@ -66,46 +66,42 @@ my @sigFiles;           # Array containing list of signature files
 my $sigFile;            # Iterator that we use to walk through @sigFiles
 
 # Directory where we'll be looking for signatures, public keys, signed files
-my $dir = "../hash-sigs-c4a/Foobar";
+my $dir = "../hash-sigs-quark/Foobar";
 
 #================================================================================
 # Program
 #================================================================================
 # No sense doing anything if no verification primitive is present
-if ( -e $hssVerify )
-{
+if (-e $hssVerify) {
     # Attempt to open the source directory where we'll find the files we need to
     # perform the signature verifications
-    opendir( DIR, $dir )
-        or die( "ERROR: unable to open $dir, aborting: $!" );
+    opendir(DIR, $dir)
+        or die("ERROR: unable to open $dir, aborting: $!");
 
     # Get list of all HSS public key files in the given directory
-    @files = grep(/^hss_.*\.pub$/, readdir(DIR) );
+    @files = grep (/^hss_.*\.pub$/, readdir(DIR) );
 
     # Iterate through the list of public key files to see which we can use to
     # perform signature verification tests
-    foreach $file ( @files )
-    {
+    foreach $file (@files) {
         # Get the stem filename and check that the corresponding signed file
         # exists before attempting to do any signature verification tests
         $file =~ m/(.*)\.pub$/;
         $file = $1;
-        if ( -e "$dir/$file" )
-        {
+        if (-e "$dir/$file") {
             print("Validating signatures for $file\n");
 
             # Re-open the source directory into a separate directory listing which
             # we'll search for signature files
-            opendir( SIGDIR, $dir )
-                or die( "ERROR: unable to open $dir, aborting: $!" );
+            opendir(SIGDIR, $dir)
+                or die("ERROR: unable to open $dir, aborting: $!");
 
             # Get list of all corresponding HSS signature files for the current key
-            @sigFiles = grep(/^$file\_\d+\.sig$/, readdir(SIGDIR));
+            @sigFiles = grep (/^$file\_\d+\.sig$/, readdir(SIGDIR));
 
             # Iterate through the list of all signature files to see which we can
             # use to perform signature verification tests
-            foreach $sigFile ( @sigFiles )
-            {
+            foreach $sigFile (@sigFiles) {
                 # Get the stem filename and use it to create temporary signature
                 # file since we require the signature file and the signed file to
                 # be the same up to the ".sig" suffix and its simpler to do this
@@ -120,13 +116,11 @@ if ( -e $hssVerify )
                 $command = "./$hssVerify $dir/$file $dir/$sigFile";
                 $ret = `$command`;
 
-                if ( $ret =~ m/Signature verified/ )
-                {
+                if ($ret =~ m/Signature verified/) {
                     $passCnt++;
                     print("  $sigFile - PASSED\n");
                 }
-                else
-                {
+                else {
                     $failCnt++;
                     print("  $sigFile - FAILED\n");
                 }
@@ -134,15 +128,13 @@ if ( -e $hssVerify )
 
             # Get rid of the temprorary signature file (if we created it in
             # the first place!)
-            if ( -e "$dir/$1.sig" )
-            {
+            if (-e "$dir/$1.sig") {
                 $ret = `rm $dir/$1.sig`;
             }
         }
     }
 }
-else
-{
+else {
     print("ERROR: signature verification primitive $hssVerify not found\n");
 }
 

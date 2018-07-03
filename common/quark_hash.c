@@ -23,7 +23,7 @@
  * All wrapper functions related to performing hashing.
  *
  */
-#include "c4a_hash.h"
+#include "quark_hash.h"
 
 
 /**
@@ -35,19 +35,16 @@
  *
  * @return void
  */
-void c4a_hashInit(
-    uint32_t        hashAlgorithm,
-    union hash_ctx *ctx)
-{
-    /* Ensure we have a valid context */
-    if ( ctx )
-    {
-        switch ( hashAlgorithm )
-        {
-        case HASH_SHA256:
-            c4a_sha256_init( &ctx->sha256 );
-        }
+void quark_hashInit(
+    uint32_t hashAlgorithm,
+    union hash_ctx* ctx) {
+  /* Ensure we have a valid context */
+  if (ctx) {
+    switch (hashAlgorithm) {
+      case HASH_SHA256:
+        quark_sha256_init(&ctx->sha256);
     }
+  }
 }
 
 
@@ -64,21 +61,18 @@ void c4a_hashInit(
  *
  * @return void
  */
-void c4a_hashUpdate(
-    uint32_t        hashAlgorithm,
-    union hash_ctx *ctx,
-    const void     *src,
-    size_t          srcLen)
-{
-    if ( ctx && src )
-    {
-        switch ( hashAlgorithm )
-        {
-        case HASH_SHA256:
-            c4a_sha256_update( &ctx->sha256, src, srcLen );
-            break;
-        }
+void quark_hashUpdate(
+    uint32_t hashAlgorithm,
+    union hash_ctx* ctx,
+    const void* src,
+    size_t srcLen) {
+  if (ctx && src) {
+    switch (hashAlgorithm) {
+      case HASH_SHA256:
+        quark_sha256_update(&ctx->sha256, src, srcLen);
+        break;
     }
+  }
 }
 
 
@@ -93,20 +87,17 @@ void c4a_hashUpdate(
  *
  * @return void
  */
-void c4a_hashFinal(
+void quark_hashFinal(
     uint32_t hashAlgorithm,
-    union hash_ctx *ctx,
-    void *dst)
-{
-    if ( ctx && dst )
-    {
-        switch ( hashAlgorithm )
-        {
-        case HASH_SHA256:
-            c4a_sha256_final( &ctx->sha256, dst );
-            break;
-        }
+    union hash_ctx* ctx,
+    void* dst) {
+  if (ctx && dst) {
+    switch (hashAlgorithm) {
+      case HASH_SHA256:
+        quark_sha256_final(&ctx->sha256, dst);
+        break;
     }
+  }
 }
 
 
@@ -123,22 +114,19 @@ void c4a_hashFinal(
  *
  * @return void
  */
-void c4a_hash(
-    uint32_t        hashAlgorithm,
-    union hash_ctx *ctx,
-    void           *dst,
-    const void     *src,
-    size_t          srcLen)
-{
-    if ( ctx && dst && src )
-    {
-        switch ( hashAlgorithm )
-        {
-        case HASH_SHA256:
-            c4a_sha256_init( &ctx->sha256 );
-            c4a_sha256_update( &ctx->sha256, src, srcLen );
-            c4a_sha256_final( &ctx->sha256, dst );
-            break;
-        }
+void quark_hash(
+    uint32_t hashAlgorithm,
+    union hash_ctx* ctx,
+    void* dst,
+    const void* src,
+    size_t srcLen) {
+  if (ctx && dst && src) {
+    switch (hashAlgorithm) {
+      case HASH_SHA256:
+        quark_sha256_init(&ctx->sha256);
+        quark_sha256_update(&ctx->sha256, src, srcLen);
+        quark_sha256_final(&ctx->sha256, dst);
+        break;
     }
+  }
 }

@@ -25,7 +25,7 @@
  * Implements the endian-swapping functions for reading/writing big endian
  * formatted data
  */
-#include "c4a_endian.h"
+#include "quark_endian.h"
 
 
 /**
@@ -41,15 +41,13 @@
  *
  * @return void
  */
-void writeBigEndian( void *dst, uint64_t value, size_t numBytes )
-{
-    uint8_t *buff = dst;
+void writeBigEndian(void* dst, uint64_t value, size_t numBytes) {
+  uint8_t* buff = dst;
 
-    for ( int i = numBytes - 1; i >= 0; i-- )
-    {
-        buff[i] = value & 0xff;
-        value >>= 8;
-    }
+  for (int i = numBytes - 1; i >= 0; i--) {
+    buff[i] = value & 0xff;
+    value >>= 8;
+  }
 }
 
 
@@ -64,17 +62,15 @@ void writeBigEndian( void *dst, uint64_t value, size_t numBytes )
  *
  * @return Value read from the src array
  */
-uint64_t readBigEndian( const void *src, size_t numBytes )
-{
-    const uint8_t *buff   = src;
-    uint64_t       retVal = 0;
+uint64_t readBigEndian(const void* src, size_t numBytes) {
+  const uint8_t* buff = src;
+  uint64_t retVal = 0;
 
-    for ( uint32_t i = 0; i < numBytes; i++ )
-    {
-        retVal = (retVal << 8) + buff[i];
-    }
+  for (uint32_t i = 0; i < numBytes; i++) {
+    retVal = (retVal << 8) + buff[i];
+  }
 
-    return retVal;
+  return retVal;
 }
 
 
@@ -86,14 +82,13 @@ uint64_t readBigEndian( const void *src, size_t numBytes )
  *
  * @return void
  */
-void zeroizeBuffer( void *buff, size_t len )
-{
+void zeroizeBuffer(void* buff, size_t len) {
 #if defined( __STDC_LIB_EXT1__ )
-    // "New" secure memset that won't be optimized out
-    memset_s( buff, len, 0, len );
+  // "New" secure memset that won't be optimized out
+  memset_s( buff, len, 0, len );
 #else
-    // A supposedly platform-independent variant if memset_s doesn't exist
-    volatile uint8_t *p = buff;
-    while (len--) *p = 0;
+  // A supposedly platform-independent variant if memset_s doesn't exist
+  volatile uint8_t* p = buff;
+  while (len--) *p = 0;
 #endif
 }

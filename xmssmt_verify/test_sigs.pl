@@ -54,32 +54,31 @@ use warnings;
 #================================================================================
 # Variables
 #================================================================================
-my $xmssVerify = "verify";  # Verification primitive used for XMSS/XMSS-MT signatures
-my $command;                # Will contain the command line we execute
-my $ret;                    # Will capture stdout of command line executed
-my $numTests = 0;           # Total number of signature verifications that we've performed
-my $passCnt = 0;            # Number of signature verification checks that have passed
-my $failCnt = 0;            # Number of signature verification checks that have failed
-my @files;                  # Array containing list of public key files
-my $file;                   # Stem of filename used to identify other file types
-my $keyFile;                # Public key filename
-my @sigFiles;               # Array containing list of signature files
-my $sigFile;                # Iterator that we use to walk through @sigFiles
+my $xmssVerify = "verify"; # Verification primitive used for XMSS/XMSS-MT signatures
+my $command;               # Will contain the command line we execute
+my $ret;                   # Will capture stdout of command line executed
+my $numTests = 0;          # Total number of signature verifications that we've performed
+my $passCnt = 0;           # Number of signature verification checks that have passed
+my $failCnt = 0;           # Number of signature verification checks that have failed
+my @files;                 # Array containing list of public key files
+my $file;                  # Stem of filename used to identify other file types
+my $keyFile;               # Public key filename
+my @sigFiles;              # Array containing list of signature files
+my $sigFile;               # Iterator that we use to walk through @sigFiles
 
 # Directory where we'll be looking for signatures, public keys, signed files
-my $dir = "../xmss-reference-c4a/ui";
+my $dir = "../xmss-reference-quark/ui";
 
 #================================================================================
 # Program
 #================================================================================
 # No sense doing anything if no verification primitive is present
-if ( -e $xmssVerify )
-{
+if (-e $xmssVerify) {
 
     # Attempt to open the source directory where we'll find the files we need to
     # perform the signature verifications
-    opendir( DIR, $dir )
-        or die( "ERROR: unable to open $dir, aborting: $!" );
+    opendir(DIR, $dir)
+        or die("ERROR: unable to open $dir, aborting: $!");
 
     # Looking for file groups of the form:
     #
@@ -95,47 +94,42 @@ if ( -e $xmssVerify )
     #
 
     # Get list of all public key files in the given directory
-    @files = grep( /^xmss.*_256\.key\.pub$/, readdir(DIR) );
+    @files = grep ( /^xmss.*_256\.key\.pub$/, readdir(DIR) );
 
     # Iterate through the list of public key files to see which we can use to
     # perform signature verification tests
-    foreach $file ( @files )
-    {
+    foreach $file (@files) {
         $keyFile = $file;
 
         # Get the stem filename and check that the corresponding signed file
         # and public key exists before attempt to do any signature verification
         # tests
-        $file =~m/(.*_256)\.key\.pub$/;
+        $file =~ m/(.*_256)\.key\.pub$/;
         $file = $1;
-        if ( ( -e "$dir/$file" ) &&
-             ( -e "$dir/$keyFile" ) )
-        {
+        if ((-e "$dir/$file") &&
+            (-e "$dir/$keyFile")) {
             print("Validating signatures for $file\n");
 
             # Re-open the source directory into a separate directory listing which
             # we'll search for signature files
-            opendir( SIGDIR, $dir )
-                or die( "ERROR: unable to open $dir, aborting: $!" );
+            opendir(SIGDIR, $dir)
+                or die("ERROR: unable to open $dir, aborting: $!");
 
             # Get list of all corresponding XMSS/XMSS-MT signature files for the current key
-            @sigFiles = grep( /^$file\_\d+\.sig$/, readdir(SIGDIR) );
+            @sigFiles = grep ( /^$file\_\d+\.sig$/, readdir(SIGDIR) );
 
             # Iterate through the list of all signature files to see which we can
             # use to perform signature verification tests
-            foreach $sigFile ( @sigFiles )
-            {
+            foreach $sigFile (@sigFiles) {
                 $numTests++;
                 $command = "./$xmssVerify $dir/$file $dir/$keyFile $dir/$sigFile";
                 $ret = `$command`;
 
-                if ( $ret =~ m/Signature verified/ )
-                {
+                if ($ret =~ m/Signature verified/) {
                     $passCnt++;
                     print("  $sigFile - PASSED\n");
                 }
-                else
-                {
+                else {
                     $failCnt++;
                     print("  $sigFile - FAILED\n");
                 }
@@ -143,8 +137,7 @@ if ( -e $xmssVerify )
         }
     }
 }
-else
-{
+else {
     print("ERROR: signature verification primitive $xmssVerify not found\n");
 }
 

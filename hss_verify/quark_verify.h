@@ -18,8 +18,8 @@
  *  Description : HSS verification methods and supporting functions
  */
 
-#ifndef _C4A_VERIFY_H_
-#define _C4A_VERIFY_H_
+#ifndef _QUARK_VERIFY_H_
+#define _QUARK_VERIFY_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,9 +29,9 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include "c4a_sha256.h"
-#include "c4a_hash.h"
-#include "c4a_endian.h"
+#include "../common/quark_sha256.h"
+#include "../common/quark_hash.h"
+#include "../common/quark_endian.h"
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Constant Definitions */
@@ -71,7 +71,7 @@ extern "C" {
 #define OTS_i_OFFSET                ( I_LEN + q_LEN )
 #define OTS_j_OFFSET                ( I_LEN + q_LEN + i_LEN )
 #define OTS_TMP_OFFSET              ( I_LEN + q_LEN + i_LEN + j_LEN )
-#define OTS_OFFSET( len )           ( OTS_TMP_OFFSET + ( len ) )
+#define OTS_OFFSET(len)           ( OTS_TMP_OFFSET + ( len ) )
 #define OTS_MAX_LEN                 OTS_OFFSET( MAX_HASH_LEN )
 
 /* OTS Kc hash format (only need to specify D/Z locations as we'll be sharing */
@@ -84,7 +84,7 @@ extern "C" {
 #define TREEINT_q_OFFSET            I_LEN                  // unused
 #define TREEINT_D_OFFSET            ( I_LEN + q_LEN )      // unused
 #define TREEINT_PK_OFFSET           ( I_LEN + q_LEN + D_LEN )
-#define TREEINT_OFFSET( len )       ( TREEINT_PK_OFFSET + 2 * ( len ) )
+#define TREEINT_OFFSET(len)       ( TREEINT_PK_OFFSET + 2 * ( len ) )
 #define TREEINT_MAX_LEN             TREEINT_OFFSET( MAX_HASH_LEN )
 
 /* Merkle tree leaf nodes hashing format */
@@ -92,7 +92,7 @@ extern "C" {
 #define TREELEAF_q_OFFSET           I_LEN
 #define TREELEAF_D_OFFSET           ( I_LEN + q_LEN )
 #define TREELEAF_PK_OFFSET          ( I_LEN + q_LEN + D_LEN )
-#define TREELEAF_OFFSET( len )      ( TREELEAF_PK_OFFSET + ( len ) )
+#define TREELEAF_OFFSET(len)      ( TREELEAF_PK_OFFSET + ( len ) )
 #define TREELEAF_MAX_LEN            TREELEAF_OFFSET( MAX_HASH_LEN )
 
 /* Message hasing format */
@@ -100,7 +100,7 @@ extern "C" {
 #define MSG_q_OFFSET                I_LEN
 #define MSG_D_OFFSET                ( I_LEN + q_LEN )
 #define MSG_C_OFFSET                ( I_LEN + q_LEN + D_LEN )
-#define MSG_MSG_OFFSET( len )       ( I_LEN + q_LEN + D_LEN + ( len ) )
+#define MSG_MSG_OFFSET(len)       ( I_LEN + q_LEN + D_LEN + ( len ) )
 #define MSG_MAX_LEN                 MSG_MSG_OFFSET( MAX_HASH_LEN )
 
 /* OTS Public Key format */
@@ -108,13 +108,13 @@ extern "C" {
 #define OTS_KEY_I_OFFSET            TYPE_LEN
 #define OTS_KEY_q_OFFSET            ( TYPE_LEN + I_LEN )
 #define OTS_KEY_K_OFFSET            ( TYPE_LEN + I_LEN + q_LEN )
-#define OTS_KEY_OFFSET( n )         ( TYPE_LEN + I_LEN + q_LEN + ( n ) )
+#define OTS_KEY_OFFSET(n)         ( TYPE_LEN + I_LEN + q_LEN + ( n ) )
 
 /* OTS Signature format */
 #define OTS_SIG_TYPE_OFFSET         0
 #define OTS_SIG_C_OFFSET            TYPE_LEN
-#define OTS_SIG_Y_OFFSET( n )       ( TYPE_LEN + ( n ) )
-#define OTS_SIG_OFFSET( n, p )      ( TYPE_LEN + ( n ) * ( ( p ) + 1 ) )
+#define OTS_SIG_Y_OFFSET(n)       ( TYPE_LEN + ( n ) )
+#define OTS_SIG_OFFSET(n, p)      ( TYPE_LEN + ( n ) * ( ( p ) + 1 ) )
 
 /* LMS Public Key format */
 #define LMS_KEY_LMS_TYPE_OFFSET     0
@@ -125,8 +125,8 @@ extern "C" {
 /* LMS Signature format */
 #define LMS_SIG_q_OFFSET            0
 #define LMS_SIG_OTS_SIG_OFFSET      q_LEN
-#define LMS_SIG_TYPE_OFFSET( n, p ) ( q_LEN + OTS_SIG_OFFSET( ( n ), ( p ) ) )
-#define LMS_SIG_P0_OFFSET( n, p )   ( LMS_SIG_TYPE_OFFSET( ( n ), ( p ) ) + TYPE_LEN )
+#define LMS_SIG_TYPE_OFFSET(n, p) ( q_LEN + OTS_SIG_OFFSET( ( n ), ( p ) ) )
+#define LMS_SIG_P0_OFFSET(n, p)   ( LMS_SIG_TYPE_OFFSET( ( n ), ( p ) ) + TYPE_LEN )
 
 /* HSS Public Key format */
 #define HSS_KEY_LEVELS_OFFSET       0
@@ -146,91 +146,137 @@ extern "C" {
 /*----------------------------------------------------------------------------------------------------*/
 /* Type Definitions */
 /*----------------------------------------------------------------------------------------------------*/
-    typedef enum {
-        SIG_OK = 0,
-        SIG_INVALID_SIG,
-        SIG_INVALID_PARAM,
-        SIG_INVALID_LMS_KEY_LEN,
-        SIG_INVALID_LMS_SIG_LEN,
-        SIG_INVALID_LMS_TYPE,
-        SIG_INVALID_LMS_NODE,
-        SIG_INVALID_OTS_KEY_LEN,
-        SIG_INVALID_OTS_SIG_LEN,
-        SIG_INVALID_OTS_TYPE,
-        SIG_INVALID_HSS_KEY_LEN,
-        SIG_INVALID_HSS_SIG_LEN,
-        SIG_INVALID_HSS_LEVELS,
-        SIG_FLASH_READ_ERROR,
-        SIG_INSUFFICIENT_MEMORY,
-        SIG_UNSUPPORTED_OID,
-        SIG_NUM_RETCODES
-    } sig_retcode_t;
+typedef enum {
+  SIG_OK = 0,
+  SIG_INVALID_SIG,
+  SIG_INVALID_PARAM,
+  SIG_INVALID_LMS_KEY_LEN,
+  SIG_INVALID_LMS_SIG_LEN,
+  SIG_INVALID_LMS_TYPE,
+  SIG_INVALID_LMS_NODE,
+  SIG_INVALID_OTS_KEY_LEN,
+  SIG_INVALID_OTS_SIG_LEN,
+  SIG_INVALID_OTS_TYPE,
+  SIG_INVALID_HSS_KEY_LEN,
+  SIG_INVALID_HSS_SIG_LEN,
+  SIG_INVALID_HSS_LEVELS,
+  SIG_FLASH_READ_ERROR,
+  SIG_INSUFFICIENT_MEMORY,
+  SIG_UNSUPPORTED_OID,
+  SIG_NUM_RETCODES
+} sig_retcode_t;
 
-    typedef uint32_t merkle_index_t;
-    typedef uint32_t param_set_t;
-    typedef uint64_t sequence_t;
+typedef uint32_t merkle_index_t;
+typedef uint32_t param_set_t;
+typedef uint64_t sequence_t;
 
 /* Define dummy enumerated data type and callback type */
-    typedef enum
-    {
-        DEFAULT_FLASH = 0
-    } nlflash_id_t;
-    typedef void * nlloop_callback_fp;
+typedef enum {
+  DEFAULT_FLASH = 0
+} nlflash_id_t;
+typedef void* nlloop_callback_fp;
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Define global variables */
 /*----------------------------------------------------------------------------------------------------*/
 /* FLASH device definition */
-#define C4A_FLASH_SIZE  65536
-    uint8_t g_flashBuff[C4A_FLASH_SIZE];
-    uint32_t g_flashCnt;
+#define QUARK_FLASH_SIZE  65536
+uint8_t g_flashBuff[QUARK_FLASH_SIZE];
+uint32_t g_flashCnt;
 
 /* FLASH cache definition */
-#define  C4A_USE_FLASH_CACHE
-#define  C4A_CACHE_SIZE     256
-    uint32_t g_cacheStart;
-    uint32_t g_cacheEnd;
-    uint8_t  g_cache[C4A_CACHE_SIZE];
-    uint32_t g_flashBytesRead;
+#define  QUARK_USE_FLASH_CACHE
+#define  QUARK_CACHE_SIZE     256
+uint32_t g_cacheStart;
+uint32_t g_cacheEnd;
+uint8_t g_cache[QUARK_CACHE_SIZE];
+uint32_t g_flashBytesRead;
 
 /* Scratch buffer definition */
-#define  C4A_SCRATCH_SIZE   295
+#define  QUARK_SCRATCH_SIZE   295
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Function prototypes */
 /*----------------------------------------------------------------------------------------------------*/
 
-    size_t otsSignatureLen( param_set_t otsType );
-    size_t otsPublicKeyLen( param_set_t otsType );
-    uint32_t otsCoeff( const uint8_t *S, uint32_t i, uint32_t w );
-    void otsComputeChecksum( uint8_t *checksum, uint8_t *value, uint32_t valueLen, uint32_t w, uint32_t ls );
-    sig_retcode_t otsParameterLookup( param_set_t otsType, uint32_t *H, uint32_t *n, uint32_t *w, uint32_t *p, uint32_t *ls );
-    sig_retcode_t otsComputeKc( uint8_t *computedKc, const uint8_t *I, merkle_index_t q, const void *message,
-                                size_t messageLen, const uint8_t *signature, size_t signatureLen, param_set_t pubType );
-    size_t lmsSignatureLen( param_set_t lmsType, param_set_t otsType );
-    size_t lmsPublicKeyLen( param_set_t lmsType );
-    sig_retcode_t lmsParameterLookup( param_set_t lmsType, uint32_t *H, uint32_t *m, uint32_t *h );
-    sig_retcode_t lmsVerifySignature( const void *message, size_t messageLen, const uint8_t *signature,
-                                      size_t signatureLen, const uint8_t *publicKey, size_t publicKeyLen );
-    sig_retcode_t hssVerifySignature( const void *message, size_t messageLen, const uint8_t *signature,
-                                      size_t signatureLen, const uint8_t *publicKey, size_t publicKeyLen );
+size_t otsSignatureLen(param_set_t otsType);
+size_t otsPublicKeyLen(param_set_t otsType);
+uint32_t otsCoeff(const uint8_t* S, uint32_t i, uint32_t w);
+void otsComputeChecksum(uint8_t* checksum,
+                        uint8_t* value,
+                        uint32_t valueLen,
+                        uint32_t w,
+                        uint32_t ls);
+sig_retcode_t otsParameterLookup(param_set_t otsType,
+                                 uint32_t* H,
+                                 uint32_t* n,
+                                 uint32_t* w,
+                                 uint32_t* p,
+                                 uint32_t* ls);
+sig_retcode_t otsComputeKc(uint8_t* computedKc,
+                           const uint8_t* I,
+                           merkle_index_t q,
+                           const void* message,
+                           size_t messageLen,
+                           const uint8_t* signature,
+                           size_t signatureLen,
+                           param_set_t pubType);
+size_t lmsSignatureLen(param_set_t lmsType, param_set_t otsType);
+size_t lmsPublicKeyLen(param_set_t lmsType);
+sig_retcode_t
+lmsParameterLookup(param_set_t lmsType, uint32_t* H, uint32_t* m, uint32_t* h);
+sig_retcode_t lmsVerifySignature(const void* message,
+                                 size_t messageLen,
+                                 const uint8_t* signature,
+                                 size_t signatureLen,
+                                 const uint8_t* publicKey,
+                                 size_t publicKeyLen);
+sig_retcode_t hssVerifySignature(const void* message,
+                                 size_t messageLen,
+                                 const uint8_t* signature,
+                                 size_t signatureLen,
+                                 const uint8_t* publicKey,
+                                 size_t publicKeyLen);
 
 /* Flash emulation and scratch buff based variants */
-    int nlflash_read(nlflash_id_t flash_id, uint32_t from, size_t len, size_t *retlen, uint8_t *buf, nlloop_callback_fp callback);
-#ifdef C4A_USE_FLASH_CACHE
-    sig_retcode_t flashcpy_cached( uint8_t *buf, uint32_t offset, size_t len );
+int nlflash_read(uint32_t from,
+                 size_t len,
+                 size_t* retlen,
+                 uint8_t* buf);
+#ifdef QUARK_USE_FLASH_CACHE
+sig_retcode_t flashcpy_cached(uint8_t* buf, uint32_t offset, size_t len);
 #else
-    sig_retcode_t flashcpy( uint8_t *buf, uint32_t offset, size_t len );
+sig_retcode_t flashcpy( uint8_t *buf, uint32_t offset, size_t len );
 #endif
-    sig_retcode_t otsComputeKcFlash( uint8_t *computedKc, const uint8_t *I, merkle_index_t q, const void *message, size_t messageLen,
-                                     uint32_t signatureOffset, size_t signatureLen, param_set_t pubType, uint8_t *scratchBuff, size_t scratchLen );
-    sig_retcode_t lmsVerifySignatureFlash( const void *message, size_t messageLen, uint32_t signatureOffset, size_t signatureLen,
-                                           const uint8_t *publicKey, size_t publicKeyLen, uint8_t *scratchBuff, size_t scratchLen );
-    sig_retcode_t hssVerifySignatureFlash( const void *message, size_t messageLen, uint32_t signatureOffset, size_t signatureLen,
-                                           const uint8_t *publicKey, size_t publicKeyLen, uint8_t *scratchBuff, size_t scratchLen );
+sig_retcode_t otsComputeKcFlash(uint8_t* computedKc,
+                                const uint8_t* I,
+                                merkle_index_t q,
+                                const void* message,
+                                size_t messageLen,
+                                uint32_t signatureOffset,
+                                size_t signatureLen,
+                                param_set_t pubType,
+                                uint8_t* scratchBuff,
+                                size_t scratchLen);
+sig_retcode_t lmsVerifySignatureFlash(const void* message,
+                                      size_t messageLen,
+                                      uint32_t signatureOffset,
+                                      size_t signatureLen,
+                                      const uint8_t* publicKey,
+                                      size_t publicKeyLen,
+                                      uint8_t* scratchBuff,
+                                      size_t scratchLen);
+sig_retcode_t hssVerifySignatureFlash(const void* message,
+                                      size_t messageLen,
+                                      uint32_t signatureOffset,
+                                      size_t signatureLen,
+                                      const uint8_t* publicKey,
+                                      size_t publicKeyLen,
+                                      uint8_t* scratchBuff,
+                                      size_t scratchLen);
 
 #ifdef __cplusplus
 }
-#endif    
+#endif
 
-#endif /* _C4A_VERIFY_H_ */
+#endif /* _QUARK_VERIFY_H_ */

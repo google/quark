@@ -18,8 +18,8 @@
  *  Description : All wrapper functions related to performing hashing.
  */
 
-#ifndef _C4A_HASH_H_
-#define _C4A_HASH_H_
+#ifndef _QUARK_HASH_H_
+#define _QUARK_HASH_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,32 +27,37 @@ extern "C" {
 
 #include <stddef.h>
 #include <stdint.h>
-#include "c4a_endian.h"
-#include "c4a_sha256.h"
+#include "quark_endian.h"
+#include "quark_sha256.h"
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Type Definitions */
 /*----------------------------------------------------------------------------------------------------*/
-enum
-{
-    HASH_SHA256 = 1
+enum {
+  HASH_SHA256 = 1
 };
 
-union hash_ctx
-{
-    C4A_SHA256_CTX sha256;
+union hash_ctx {
+  QUARK_SHA256_CTX sha256;
 };
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Function Prototypes */
 /*----------------------------------------------------------------------------------------------------*/
-void c4a_hashInit( uint32_t hashAlgorithm, union hash_ctx *ctx );
-void c4a_hashUpdate( uint32_t hashAlgorithm, union hash_ctx *ctx, const void *src, size_t srcLen );
-void c4a_hashFinal( uint32_t hashAlgorithm, union hash_ctx *ctx, void *dst );
-void c4a_hash( uint32_t hashAlgorithm, union hash_ctx *ctx, void *dst, const void *src, size_t srcLen );
+void quark_hashInit(uint32_t hashAlgorithm, union hash_ctx* ctx);
+void quark_hashUpdate(uint32_t hashAlgorithm,
+                      union hash_ctx* ctx,
+                      const void* src,
+                      size_t srcLen);
+void quark_hashFinal(uint32_t hashAlgorithm, union hash_ctx* ctx, void* dst);
+void quark_hash(uint32_t hashAlgorithm,
+                union hash_ctx* ctx,
+                void* dst,
+                const void* src,
+                size_t srcLen);
 
 #ifdef __cplusplus
 }
-#endif    
+#endif
 
-#endif /* _C4A_HASH_H */
+#endif /* _QUARK_HASH_H */

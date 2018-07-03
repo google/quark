@@ -18,8 +18,8 @@
  *  Description : Endian-swapping related functions
  */
 
-#ifndef _C4A_ENDIAN_H_
-#define _C4A_ENDIAN_H_
+#ifndef _QUARK_ENDIAN_H_
+#define _QUARK_ENDIAN_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,12 +28,12 @@ extern "C" {
 #include <stdint.h>
 #include <string.h>
 
-    void writeBigEndian( void *dst, uint64_t value, size_t numBytes );
-    uint64_t readBigEndian( const void *src, size_t numBytes );
-    void zeroizeBuffer( void *buff, size_t len );
+void writeBigEndian(void* dst, uint64_t value, size_t numBytes);
+uint64_t readBigEndian(const void* src, size_t numBytes);
+void zeroizeBuffer(void* buff, size_t len);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _C4A_ENDIAN_H_ */
+#endif /* _QUARK_ENDIAN_H_ */

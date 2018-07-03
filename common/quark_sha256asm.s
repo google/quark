@@ -24,7 +24,7 @@
 
 
 /*******************************************************************************/
-/** c4a_sha256_asm_compress( *pwState, *pDataBlock )                          **/
+/** quark_sha256_asm_compress( *pwState, *pDataBlock )                          **/
 /**                                                                           **/
 /**   Updates pwState state based on hashing block stored in pDataBlock[].    **/
 /**                                                                           **/
@@ -43,9 +43,9 @@
 /**   r12 used as temp                                                        **/
 /**                                                                           **/
 /*******************************************************************************/
-    .global  c4a_sha256_asm_compress
-    .func    c4a_sha256_asm_compress
-c4a_sha256_asm_compress:
+    .global  quark_sha256_asm_compress
+    .func    quark_sha256_asm_compress
+quark_sha256_asm_compress:
     STMFD    SP!, {r2-r12}           /* save the required registers                                                */
     LDR      r10, =wt_asm            /* r10 = *Wt[0]                                                               */
     MOV      r9, #16                 /* i = 16                                                                     */

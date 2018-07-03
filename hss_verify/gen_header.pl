@@ -39,68 +39,65 @@ use Getopt::Long;
 #================================================================================
 # Variables
 #================================================================================
-my $sigFile;            # Name of file that contains the binary signature
-my $msgFile;            # Name of file that contains the message to be signed
-my $keyFile;            # Name of file that contains the public key
-my $outFile;            # Name of file that will contain values defined as arrays
-my $sigLen = 0;         # Length (in bytes) of signature file
-my $msgLen = 0;         # Length (in bytes) of message file
-my $keyLen = 0;         # Length (in bytes) of public key file
-my $prefix;             # Empty string used to pad the output file
-my $byte;               # Byte read from current input file
-my $lineLen = 16;       # Number of bytes to print per output line
-my $sigHandle;          # File handle pointing to signature file
-my $msgHandle;          # File handle pointing to message file
-my $keyHandle;          # File handle pointing to public key file
-my $outHandle;          # File handle pointing to output file
+my $sigFile;      # Name of file that contains the binary signature
+my $msgFile;      # Name of file that contains the message to be signed
+my $keyFile;      # Name of file that contains the public key
+my $outFile;      # Name of file that will contain values defined as arrays
+my $sigLen = 0;   # Length (in bytes) of signature file
+my $msgLen = 0;   # Length (in bytes) of message file
+my $keyLen = 0;   # Length (in bytes) of public key file
+my $prefix;       # Empty string used to pad the output file
+my $byte;         # Byte read from current input file
+my $lineLen = 16; # Number of bytes to print per output line
+my $sigHandle;    # File handle pointing to signature file
+my $msgHandle;    # File handle pointing to message file
+my $keyHandle;    # File handle pointing to public key file
+my $outHandle;    # File handle pointing to output file
 
 #================================================================================
 # Program
 #================================================================================
 
 # Attempt to parse the command line to get the necessary arguments
-GetOptions (
+GetOptions(
     "sig|s=s" => \$sigFile,
     "msg|m=s" => \$msgFile,
     "key|k=s" => \$keyFile,
-    "out|o=s" => \$outFile )
-    or die( "USAGE: $0 --sig <fname> --msg <fname> --key <fname> --out <fname>" );
+    "out|o=s" => \$outFile)
+    or die("USAGE: $0 --sig <fname> --msg <fname> --key <fname> --out <fname>");
 
 # Ensure we have what we need to run the script
-if ( !defined($sigFile) ||
-     !defined($msgFile) ||
-     !defined($keyFile) ||
-     !defined($outFile) )
-{
-    print( "USAGE: $0 --sig <fname> --msg <fname> --key <fname> --out <fname>\n" );
+if (!defined($sigFile) ||
+    !defined($msgFile) ||
+    !defined($keyFile) ||
+    !defined($outFile)) {
+    print("USAGE: $0 --sig <fname> --msg <fname> --key <fname> --out <fname>\n");
     exit 0;
 }
 
 # Attempt to open the various files for reading/writing (assume all input
 # files are binary format, whereas we'll be writing to a text-based C
 # header outt file
-open( $sigHandle, "<", $sigFile )
-    or die( "ERROR: unable to open $sigFile, aborting: $!" );
-binmode( $sigHandle );
+open($sigHandle, "<", $sigFile)
+    or die("ERROR: unable to open $sigFile, aborting: $!");
+binmode($sigHandle);
 
-open( $msgHandle, "<", $msgFile )
-    or die( "ERROR: unable to open $msgFile, aborting: $!" );
-binmode( $msgHandle );
+open($msgHandle, "<", $msgFile)
+    or die("ERROR: unable to open $msgFile, aborting: $!");
+binmode($msgHandle);
 
-open( $keyHandle, "<", $keyFile )
-    or die( "ERROR: unable to open $keyFile, aborting: $!" );
-binmode( $keyHandle );
+open($keyHandle, "<", $keyFile)
+    or die("ERROR: unable to open $keyFile, aborting: $!");
+binmode($keyHandle);
 
-open( $outHandle, ">", $outFile )
-    or die( "ERROR: unable to open $outFile, aborting: $!" );
+open($outHandle, ">", $outFile)
+    or die("ERROR: unable to open $outFile, aborting: $!");
 
 # Start processing the file containing the message that was signed
 print($outHandle "uint8_t hss_msg[] = { ");
-$prefix =        "                      ";
-while ( read( $msgHandle, $byte, 1 ) )
-{
-    if ( $msgLen && ( ( $msgLen % 16 ) == 0 ) )
-    {
+$prefix = "                      ";
+while (read($msgHandle, $byte, 1)) {
+    if ($msgLen && (($msgLen % 16) == 0)) {
         print($outHandle "\n$prefix");
     }
     $msgLen++;
@@ -108,15 +105,13 @@ while ( read( $msgHandle, $byte, 1 ) )
 }
 print($outHandle " };\n");
 print($outHandle "size_t msgLen = $msgLen;\n\n");
-close( $msgHandle );
+close($msgHandle);
 
 # Start processing the file containing the public key
 print($outHandle "const uint8_t hss_pubKey[] = { ");
-$prefix =        "                               ";
-while ( read( $keyHandle, $byte, 1 ) )
-{
-    if ( $keyLen && ( ( $keyLen % 16 ) == 0 ) )
-    {
+$prefix = "                               ";
+while (read($keyHandle, $byte, 1)) {
+    if ($keyLen && (($keyLen % 16) == 0)) {
         print($outHandle "\n$prefix");
     }
     $keyLen++;
@@ -124,15 +119,13 @@ while ( read( $keyHandle, $byte, 1 ) )
 }
 print($outHandle " };\n");
 print($outHandle "size_t keyLen = $keyLen;\n\n");
-close( $keyHandle );
+close($keyHandle);
 
 # Start processing the file containing the signature
 print($outHandle "const uint8_t hss_sig[] = { ");
-$prefix =          "                          ";
-while ( read( $sigHandle, $byte, 1 ) )
-{
-    if ( $sigLen && ( ( $sigLen % 16 ) == 0 ) )
-    {
+$prefix = "                          ";
+while (read($sigHandle, $byte, 1)) {
+    if ($sigLen && (($sigLen % 16) == 0)) {
         print($outHandle "\n$prefix");
     }
     $sigLen++;
@@ -140,7 +133,7 @@ while ( read( $sigHandle, $byte, 1 ) )
 }
 print($outHandle " };\n");
 print($outHandle "size_t sigLen = $sigLen;\n");
-close( $sigHandle );
+close($sigHandle);
 
 # Close the output file now that we're done with it
-close( $outHandle );
+close($outHandle);

@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "c4a_verify.h"
+#include "quark_verify.h"
 
 //#include "hss_vectors_001.h"
 //#include "hss_ref_20_4.h"
@@ -36,7 +36,7 @@
 #define FILE_INCREMENT         20000
 #define USE_FLASH_EMULATION    1
 
-char *retcode_strings[SIG_NUM_RETCODES] = {
+char* retcode_strings[SIG_NUM_RETCODES] = {
     "SIG_OK",
     "SIG_INVALID_SIG",
     "SIG_INVALID_PARAM",
@@ -55,7 +55,7 @@ char *retcode_strings[SIG_NUM_RETCODES] = {
 };
 
 /*  *********************************************************
- *  *** THIS FUNCTION IS COPIED FROM hash-sigs-c4a/demo.c ***
+ *  *** THIS FUNCTION IS COPIED FROM hash-sigs-quark/demo.c ***
  *  *** AND THEN TWEAKED TO MEET OUR NEEDS.               ***
  *  *********************************************************
  *
@@ -66,46 +66,43 @@ char *retcode_strings[SIG_NUM_RETCODES] = {
  * This isn't used to read in the files being signed/verified; we read
  * those in chunks within the sign()/verify() routines below.
  */
-void *read_file( const char *filename, size_t *len ) {
-    FILE *f = fopen( filename, "r" );
-    if (!f)
-        return 0;
+void* read_file(const char* filename, size_t* len) {
+  FILE* f = fopen(filename, "r");
+  if (!f)
+    return 0;
 
-    unsigned alloc_len = FILE_INCREMENT;
-    uint8_t *p = malloc( alloc_len );
-    if (!p)
-        return 0;
+  unsigned alloc_len = FILE_INCREMENT;
+  uint8_t* p = malloc(alloc_len);
+  if (!p)
+    return 0;
 
-    unsigned cur_len = 0;
-    for (;;)
-    {
-        unsigned delta = alloc_len - cur_len;
-        if (delta == 0)
-        {
-            uint8_t *q = realloc( p, alloc_len + FILE_INCREMENT );
-            if (!q)
-            {
-                free(p);
-                return 0;
-            }
-            p = q;
-            alloc_len += FILE_INCREMENT;
-            delta = FILE_INCREMENT;
-        }
-        int n = fread( p + cur_len, 1, delta, f );
-        if (n <= 0)
-            break;
-        cur_len += n;
+  unsigned cur_len = 0;
+  for (;;) {
+    unsigned delta = alloc_len - cur_len;
+    if (delta == 0) {
+      uint8_t* q = realloc(p, alloc_len + FILE_INCREMENT);
+      if (!q) {
+        free(p);
+        return 0;
+      }
+      p = q;
+      alloc_len += FILE_INCREMENT;
+      delta = FILE_INCREMENT;
     }
+    int n = fread(p + cur_len, 1, delta, f);
+    if (n <= 0)
+      break;
+    cur_len += n;
+  }
 
-    if (len)
-        *len = cur_len;
-    return p;
+  if (len)
+    *len = cur_len;
+  return p;
 }
 
 
 /*  *********************************************************
- *  *** THIS FUNCTION IS COPIED FROM hash-sigs-c4a/demo.c ***
+ *  *** THIS FUNCTION IS COPIED FROM hash-sigs-quark/demo.c ***
  *  *** AND THEN TWEAKED TO MEET OUR NEEDS.               ***
  *  *********************************************************
  *
@@ -113,68 +110,70 @@ void *read_file( const char *filename, size_t *len ) {
  * and then for each file, reads the file and the signature from disk, and
  * attempts to verify the signature.
  */
-static int verify(const char *keyname, char **files)
-{
-    /* Step 1: read in the public key */
-    char public_key_filename[ strlen(keyname) + sizeof ".pub" + 1 ];
-    size_t pub_len;
-    sprintf( public_key_filename, "%s.pub", keyname );
-    uint8_t *pub = read_file( public_key_filename, &pub_len );
-    if (!pub)
-    {
-        printf( "Error: unable to read %s\n", public_key_filename );
-        return 0;
+static int verify(const char* keyname, char** files) {
+  /* Step 1: read in the public key */
+  char public_key_filename[strlen(keyname) + sizeof ".pub" + 1];
+  size_t pub_len;
+  sprintf(public_key_filename, "%s.pub", keyname);
+  uint8_t* pub = read_file(public_key_filename, &pub_len);
+  if (!pub) {
+    printf("Error: unable to read %s\n", public_key_filename);
+    return 0;
+  }
+
+  for (int i = 0; files[i]; i++) {
+    printf("Verifying %s\n", files[i]);
+
+    /* Read in the signature */
+    char sig_file_name[strlen(files[i]) + sizeof(".sig") + 1];
+    sprintf(sig_file_name, "%s.sig", files[i]);
+    size_t sig_len;
+    void* sig = read_file(sig_file_name, &sig_len);
+    if (!sig) {
+      printf("    %s: unable to read signature file %s\n",
+             files[i],
+             sig_file_name);
+      continue;
     }
 
-    for (int i=0; files[i]; i++)
-    {
-        printf( "Verifying %s\n", files[i] );
-
-        /* Read in the signature */
-        char sig_file_name[ strlen(files[i]) + sizeof( ".sig" ) + 1 ];
-        sprintf( sig_file_name, "%s.sig", files[i] );
-        size_t sig_len;
-        void *sig = read_file( sig_file_name, &sig_len );
-        if (!sig)
-        {
-            printf( "    %s: unable to read signature file %s\n", files[i], sig_file_name );
-            continue;
-        }
-    
-        /* Read in the file */
-        size_t msg_len;
-        void *msg = read_file( files[i], &msg_len );
-        if (!msg) {
-            printf( "    %s: unable to read\n", files[i] );
-            continue;
-        }
-
-        sig_retcode_t status;
-        if ( USE_FLASH_EMULATION )
-        {
-            size_t  sig_off    = 0;
-            size_t  scratchLen = 384;
-            uint8_t scratchBuff[scratchLen];
-            memcpy(g_flashBuff + sig_off, sig, sig_len);
-            status = hssVerifySignatureFlash( msg, msg_len, sig_off, sig_len, pub, pub_len, scratchBuff, scratchLen );
-        }
-        else
-        {
-            status = hssVerifySignature( msg, msg_len, sig, sig_len, pub, pub_len );
-        }
-
-        free(sig);
-        free(msg);
-
-        if (SIG_OK == status)
-        {
-            printf( "    Signature verified\n" );
-        } else {
-            printf( "    Signature NOT verified (retCode = %s)\n", retcode_strings[status] );
-        }
+    /* Read in the file */
+    size_t msg_len;
+    void* msg = read_file(files[i], &msg_len);
+    if (!msg) {
+      printf("    %s: unable to read\n", files[i]);
+      continue;
     }
 
-    return 1;
+    sig_retcode_t status;
+    if (USE_FLASH_EMULATION) {
+      size_t sig_off = 0;
+      size_t scratchLen = 384;
+      uint8_t scratchBuff[scratchLen];
+      memcpy(g_flashBuff + sig_off, sig, sig_len);
+      status = hssVerifySignatureFlash(msg,
+                                       msg_len,
+                                       sig_off,
+                                       sig_len,
+                                       pub,
+                                       pub_len,
+                                       scratchBuff,
+                                       scratchLen);
+    } else {
+      status = hssVerifySignature(msg, msg_len, sig, sig_len, pub, pub_len);
+    }
+
+    free(sig);
+    free(msg);
+
+    if (SIG_OK == status) {
+      printf("    Signature verified\n");
+    } else {
+      printf("    Signature NOT verified (retCode = %s)\n",
+             retcode_strings[status]);
+    }
+  }
+
+  return 1;
 }
 
 /* Implements a simple little command line HSS signature verification utility that  */
@@ -196,20 +195,14 @@ static int verify(const char *keyname, char **files)
 /*      validated with either "Signature verified" or "Signature NOT verified"      */
 /*      being printed onscreen.  In the event of a failure it will also return the  */
 /*      error code so that you can check if it makes sense.                         */
-int main( int argc, char **argv )
-{
-    uint8_t *val;
-    sig_retcode_t result;
-
-    if ( argc < 3 )
-    {
-        printf("SYNTAX: demo <keyname> <sig1> ... <sigN>\n");
-        return 0;
-    }
-    if ( !verify( argv[1], &argv[2] ) )
-    {
-        printf("ERROR verifying\n");
-    }
-    
+int main(int argc, char** argv) {
+  if (argc < 3) {
+    printf("SYNTAX: demo <keyname> <sig1> ... <sigN>\n");
     return 0;
+  }
+  if (!verify(argv[1], &argv[2])) {
+    printf("ERROR verifying\n");
+  }
+
+  return 0;
 }

@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "c4a_verify.h"
+#include "quark_verify.h"
 
 /* List of header files containing reference vectors to be tested, please ensure */
 /* that one and only one of these is uncommented                                 */
@@ -37,7 +37,7 @@
 
 #define FILE_INCREMENT 20000
 
-char *retcode_strings[SIG_NUM_RETCODES] = {
+char* retcode_strings[SIG_NUM_RETCODES] = {
     "SIG_OK",
     "SIG_INVALID_SIG",
     "SIG_INVALID_PARAM",
@@ -61,84 +61,87 @@ char *retcode_strings[SIG_NUM_RETCODES] = {
 /* test checks that it detects a valid signature on the raw data, as well as */
 /* that it catches a single bit-flip on the message yielding an invalid      */
 /* signature.  Pretty basic stuff...                                         */
-int main( int argc, char **argv )
-{
-    sig_retcode_t result;
+int main(void) {
+  sig_retcode_t result;
 
-    g_cacheStart = 0;
-    g_cacheEnd   = 0;
+  g_cacheStart = 0;
+  g_cacheEnd = 0;
 
-    if ( 1 )
-    {
-        result = hssVerifySignature( hss_msg,
+  if (1) {
+    result = hssVerifySignature(hss_msg,
+                                msgLen,
+                                hss_sig,
+                                sigLen,
+                                hss_pubKey,
+                                keyLen);
+    if (SIG_OK == result)
+      printf("[RESULTS] hssVerifySignature computation: PASSED (%s)\n",
+             retcode_strings[result]);
+    else
+      printf("[RESULTS] hssVerifySignature computation: FAILED (%s)\n",
+             retcode_strings[result]);
+
+    hss_msg[8] ^= 0x1;
+    result = hssVerifySignature(hss_msg,
+                                msgLen,
+                                hss_sig,
+                                sigLen,
+                                hss_pubKey,
+                                keyLen);
+    hss_msg[8] ^= 0x1;
+    if (SIG_OK != result)
+      printf("[RESULTS] corrupted hssVerifySignature computation: PASSED (%s)\n",
+             retcode_strings[result]);
+    else
+      printf("[RESULTS] corrupted hssVerifySignature computation: FAILED (%s)\n",
+             retcode_strings[result]);
+  }
+
+  if (1) {
+    uint32_t signatureOffset = 0;
+    size_t scratchLen = QUARK_SCRATCH_SIZE;
+    uint8_t scratchBuff[scratchLen];
+
+    // Copy signature info into the g_flashBuff
+    memcpy(&g_flashBuff[signatureOffset], hss_sig, sigLen);
+
+    g_flashCnt = 0;
+    g_flashBytesRead = 0;
+    result = hssVerifySignatureFlash(hss_msg,
                                      msgLen,
-                                     hss_sig,
+                                     signatureOffset,
                                      sigLen,
                                      hss_pubKey,
-                                     keyLen );
-        if ( SIG_OK == result )
-            printf( "[RESULTS] hssVerifySignature computation: PASSED (%s)\n", retcode_strings[result] );
-        else
-            printf( "[RESULTS] hssVerifySignature computation: FAILED (%s)\n", retcode_strings[result] );
+                                     keyLen,
+                                     scratchBuff,
+                                     scratchLen);
+    if (SIG_OK == result)
+      printf("[RESULTS] hssVerifySignature computation: PASSED (%s)\n",
+             retcode_strings[result]);
+    else
+      printf("[RESULTS] hssVerifySignature computation: FAILED (%s)\n",
+             retcode_strings[result]);
 
-        hss_msg[8] ^= 0x1;
-        result = hssVerifySignature( hss_msg,
+    hss_msg[8] ^= 0x1;
+    g_flashCnt = 0;
+    g_flashBytesRead = 0;
+    result = hssVerifySignatureFlash(hss_msg,
                                      msgLen,
-                                     hss_sig,
+                                     signatureOffset,
                                      sigLen,
                                      hss_pubKey,
-                                     keyLen );
-        hss_msg[8] ^= 0x1;
-        if ( SIG_OK != result )
-            printf( "[RESULTS] corrupted hssVerifySignature computation: PASSED (%s)\n", retcode_strings[result] );
-        else
-            printf( "[RESULTS] corrupted hssVerifySignature computation: FAILED (%s)\n", retcode_strings[result] );
-    }
+                                     keyLen,
+                                     scratchBuff,
+                                     scratchLen);
+    hss_msg[8] ^= 0x1;
+    if (SIG_OK != result)
+      printf("[RESULTS] corrupted hssVerifySignature computation: PASSED (%s)\n",
+             retcode_strings[result]);
+    else
+      printf("[RESULTS] corrupted hssVerifySignature computation: FAILED (%s)\n",
+             retcode_strings[result]);
 
-    if ( 1 )
-    {
-        uint32_t signatureOffset = 0;
-        size_t   scratchLen      = C4A_SCRATCH_SIZE;
-        uint8_t  scratchBuff[scratchLen];
+  }
 
-        // Copy signature info into the g_flashBuff
-        memcpy(&g_flashBuff[signatureOffset], hss_sig, sigLen);
-
-        g_flashCnt = 0;
-        g_flashBytesRead = 0;
-        result = hssVerifySignatureFlash( hss_msg,
-                                          msgLen,
-                                          signatureOffset,
-                                          sigLen,
-                                          hss_pubKey,
-                                          keyLen,
-                                          scratchBuff,
-                                          scratchLen );
-        if ( SIG_OK == result )
-            printf( "[RESULTS] hssVerifySignature computation: PASSED (%s)\n", retcode_strings[result] );
-        else
-            printf( "[RESULTS] hssVerifySignature computation: FAILED (%s)\n", retcode_strings[result] );
-//        printf("g_flashCnt = %u (%u bytes)\n", g_flashCnt, g_flashBytesRead);
-
-        hss_msg[8] ^= 0x1;
-        g_flashCnt = 0;
-        g_flashBytesRead = 0;
-        result = hssVerifySignatureFlash( hss_msg,
-                                          msgLen,
-                                          signatureOffset,
-                                          sigLen,
-                                          hss_pubKey,
-                                          keyLen,
-                                          scratchBuff,
-                                          scratchLen );
-        hss_msg[8] ^= 0x1;
-        if ( SIG_OK != result )
-            printf( "[RESULTS] corrupted hssVerifySignature computation: PASSED (%s)\n", retcode_strings[result] );
-        else
-            printf( "[RESULTS] corrupted hssVerifySignature computation: FAILED (%s)\n", retcode_strings[result] );
-//        printf("g_flashCnt = %u (%u bytes)\n", g_flashCnt, g_flashBytesRead);
-
-    }
-
-    return 0;
+  return 0;
 }
