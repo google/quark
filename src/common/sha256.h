@@ -29,6 +29,12 @@ extern "C" {
 #include <stdint.h>
 #include "endian_utils.h"
 
+
+/* If QUARK_USE_SHA256_C is defined then the C-version of SHA256 compression     */
+/* funtion will be used, otherwise the ASM-version of the compression function */
+/* will be used.                                                               */
+#define QUARK_USE_SHA256_C
+
 /*----------------------------------------------------------------------------------------------------*/
 /* Constant Definitions */
 /*----------------------------------------------------------------------------------------------------*/

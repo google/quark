@@ -30,11 +30,6 @@
 #define QUARK_SHA256_FINALCOUNT_SIZE      8
 #define QUARK_SHA256_K_SIZE               64
 
-/* If QUARK_USE_SHA256_C is defined then the C-version of SHA256 compression     */
-/* funtion will be used, otherwise the ASM-version of the compression function */
-/* will be used.                                                               */
-#define QUARK_USE_SHA256_C
-
 #ifdef QUARK_USE_SHA256_C
 static const uint32_t K[QUARK_SHA256_K_SIZE] = {
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b,

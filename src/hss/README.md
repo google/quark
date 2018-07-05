@@ -88,17 +88,6 @@ I ran on the hardware platform, the only real difference in the source files for
 HW projects were the change of standard library includes to use " " instead of < >
 (e.g., #include <stdlib.h> --> #include "stdlib.h").
 
-## Using Optimized SHA256 Implementation:
-
-You can enable the use of an optimized ARM assembly language implementation of SHA256
-by undefining the QUARK_USE_SHA256_C flag in quark_sha256.c.  This will swap out the
-C-based compression function for an optimized ASM version.  I will be interested in
-seeing how much benefit this provides in the final version as I'm only seeing modest
-gains on my Nucleo64 platform (about 13%).  I expected to see more so I'll continue
-to investigate on that front.
-The scratch buffer is used to deal with the lack of dynamic allocation within
-functions.  
-
 ## Static Functions:
 
 Note that at this point almost nothing has been declared static as I wanted to
