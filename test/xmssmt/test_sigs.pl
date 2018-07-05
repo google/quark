@@ -54,7 +54,7 @@ use warnings;
 #================================================================================
 # Variables
 #================================================================================
-my $xmssVerify = "xmssmt_verify"; # Verification primitive used for XMSS/XMSS-MT signatures
+my $xmssVerify = "verify"; # Verification primitive used for XMSS/XMSS-MT signatures
 my $command;               # Will contain the command line we execute
 my $ret;                   # Will capture stdout of command line executed
 my $numTests = 0;          # Total number of signature verifications that we've performed
