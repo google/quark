@@ -18,15 +18,16 @@
  *  Description : HSS reference vector for KAT.
  */
 
-#ifndef _QUARK_REF_VEC_H_
-#define _QUARK_REF_VEC_H_
+#ifndef _QUARK_REF_VEC_001_H_
+#define _QUARK_REF_VEC_001_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include <stddef.h>
+#include "test_vector.h"
 
-const uint8_t hss_pubKey[] = {
+const uint8_t hss_pubKey_001[] = {
     // L
     0x00, 0x00, 0x00, 0x02,
     // Type LMS
@@ -43,7 +44,7 @@ const uint8_t hss_pubKey[] = {
     0x4c, 0xb2, 0xb8, 0x78
 };
 
-const uint8_t  hss_sig[] = {
+const uint8_t  hss_sig_001[] = {
     // L-1
     0x00, 0x00, 0x00, 0x01,
     //---------------------------------------------------------------------------------------------
@@ -478,7 +479,7 @@ const uint8_t  hss_sig[] = {
     0x6c, 0x73, 0xe7, 0xee
 };
 
-const uint8_t  hss_msg[] = {
+const uint8_t  hss_msg_001[] = {
     0x54, 0x68, 0x65, 0x20, 0x70, 0x6f, 0x77, 0x65, 0x72, 0x73, 0x20, 0x6e,
     0x6f, 0x74, 0x20, 0x64,
     0x65, 0x6c, 0x65, 0x67, 0x61, 0x74, 0x65, 0x64, 0x20, 0x74, 0x6f, 0x20,
@@ -502,6 +503,14 @@ const uint8_t  hss_msg[] = {
     0x2e, 0x0a
 };
 
+const test_vector vector_001 = {
+    .name = "hss_ref_001",
+    .key = hss_pubKey_001,
+    .keyLen = sizeof(hss_pubKey_001),
+    .sig = hss_sig_001,
+    .sigLen = sizeof(hss_sig_001),
+    .msg = hss_msg_001,
+    .msgLen = sizeof(hss_msg_001)};
 #ifdef __cplusplus
 }
 #endif

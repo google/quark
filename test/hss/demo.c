@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "verify.h"
+#include "ret_code_strings.h"
 
 //#include "hss_vectors_001.h"
 //#include "hss_ref_20_4.h"
@@ -35,24 +36,6 @@
 
 #define FILE_INCREMENT         20000
 #define USE_FLASH_EMULATION    1
-
-char* retcode_strings[SIG_NUM_RETCODES] = {
-    "SIG_OK",
-    "SIG_INVALID_SIG",
-    "SIG_INVALID_PARAM",
-    "SIG_INVALID_LMS_KEY_LEN",
-    "SIG_INVALID_LMS_SIG_LEN",
-    "SIG_INVALID_LMS_TYPE",
-    "SIG_INVALID_LMS_NODE",
-    "SIG_INVALID_OTS_KEY_LEN",
-    "SIG_INVALID_OTS_SIG_LEN",
-    "SIG_INVALID_OTS_TYPE",
-    "SIG_INVALID_HSS_KEY_LEN",
-    "SIG_INVALID_HSS_SIG_LEN",
-    "SIG_INVALID_HSS_LEVELS",
-    "SIG_FLASH_READ_ERROR",
-    "SIG_INSUFFICIENT_MEMORY"
-};
 
 /*  *********************************************************
  *  *** THIS FUNCTION IS COPIED FROM hash-sigs-quark/demo.c ***
@@ -169,7 +152,7 @@ static int verify(const char* keyname, char** files) {
       printf("    Signature verified\n");
     } else {
       printf("    Signature NOT verified (retCode = %s)\n",
-             retcode_strings[status]);
+             g_retcode_strings[status]);
     }
   }
 

@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS   = -g -Wall -Wextra -I. -I../../src/common -I../../src/hss
+CFLAGS   = -g -Wall -Wextra -I. -I../../src/common -I../../src/hss -I../common
 LDFLAGS  = -L. -L../../src/common -L../../src/hss
 LIBS  = -lhssVerify -lquarkCommon
 EXEC     = demo

@@ -22,44 +22,24 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 #include "verify.h"
 
 /* List of header files containing reference vectors to be tested, please ensure */
 /* that one and only one of these is uncommented                                 */
-//#include "hss_vectors_001.h"
-//#include "hss_ref_20_4.h"
-//#include "hss_ref_20_2.h"
-//#include "hss_ref_40_8.h"
-//#include "hss_ref_40_4.h"
-//#include "hss_ref_40_2.h"
-//#include "hss_ref_60_6.h"
+#include "hss_vectors_001.h"
+#include "hss_ref_20_4.h"
+#include "hss_ref_20_2.h"
+#include "hss_ref_40_8.h"
+#include "hss_ref_40_4.h"
+#include "hss_ref_40_2.h"
+#include "hss_ref_60_6.h"
 #include "hss_ref_60_3.h"
-
-
-
-size_t keyLen = sizeof(hss_pubKey);
-size_t msgLen = sizeof(hss_msg);
-size_t sigLen = sizeof(hss_sig);
+#include "test_vector.h"
+#include "macros.h"
 
 #define FILE_INCREMENT 20000
 
-char* retcode_strings[SIG_NUM_RETCODES] = {
-    "SIG_OK",
-    "SIG_INVALID_SIG",
-    "SIG_INVALID_PARAM",
-    "SIG_INVALID_LMS_KEY_LEN",
-    "SIG_INVALID_LMS_SIG_LEN",
-    "SIG_INVALID_LMS_TYPE",
-    "SIG_INVALID_LMS_NODE",
-    "SIG_INVALID_OTS_KEY_LEN",
-    "SIG_INVALID_OTS_SIG_LEN",
-    "SIG_INVALID_OTS_TYPE",
-    "SIG_INVALID_HSS_KEY_LEN",
-    "SIG_INVALID_HSS_SIG_LEN",
-    "SIG_INVALID_HSS_LEVELS",
-    "SIG_FLASH_READ_ERROR",
-    "SIG_INSUFFICIENT_MEMORY"
-};
 
 /* Implements a quick-and-dirty known-answer-test (KAT) command line utility */
 /* that allows you to check and see if your signature primitive is (still!)  */
@@ -68,87 +48,83 @@ char* retcode_strings[SIG_NUM_RETCODES] = {
 /* that it catches a single bit-flip on the message yielding an invalid      */
 /* signature.  Pretty basic stuff...                                         */
 int main(void) {
-  sig_retcode_t result;
+
+  const test_vector testVectors[] = {
+      vector_001,
+      vector_20_2,
+      vector_20_4,
+      vector_40_2,
+      vector_40_4,
+      vector_40_8,
+      vector_60_3,
+      vector_60_6
+  };
 
   g_cacheStart = 0;
   g_cacheEnd = 0;
 
-  uint8_t hss_msg_corrupt[sizeof(hss_msg)];
-  memcpy(hss_msg_corrupt, hss_msg, sizeof(hss_msg_corrupt));
-  hss_msg_corrupt[8] ^= 0x1;
+  for (size_t v = 0; v < sizeof(testVectors) / sizeof(testVectors[0]); v++) {
+    printf("-----Using Vector: %s-----\n", testVectors[v].name);
+
+    uint8_t hss_msg_corrupt[testVectors[v].msgLen];
+    memcpy(hss_msg_corrupt, testVectors[v].msg, testVectors[v].msgLen);
+    hss_msg_corrupt[8] ^= 0x1;
+    printf("HSS Verify Sig tests:");
 
 
-  if (1) {
-    result = hssVerifySignature(hss_msg,
-                                msgLen,
-                                hss_sig,
-                                sigLen,
-                                hss_pubKey,
-                                keyLen);
-    if (SIG_OK == result)
-      printf("[RESULTS] hssVerifySignature computation: PASSED (%s)\n",
-             retcode_strings[result]);
-    else
-      printf("[RESULTS] hssVerifySignature computation: FAILED (%s)\n",
-             retcode_strings[result]);
+    TEST("hssVerifySignature", SIG_OK, hssVerifySignature(testVectors[v].msg,
+                                                                     testVectors[v].msgLen,
+                                                                     testVectors[v].sig,
+                                                                     testVectors[v].sigLen,
+                                                                     testVectors[v].key,
+                                                                     testVectors[v].keyLen));
 
-    result = hssVerifySignature(hss_msg_corrupt,
-                                msgLen,
-                                hss_sig,
-                                sigLen,
-                                hss_pubKey,
-                                keyLen);
-    if (SIG_OK != result)
-      printf("[RESULTS] corrupted hssVerifySignature computation: PASSED (%s)\n",
-             retcode_strings[result]);
-    else
-      printf("[RESULTS] corrupted hssVerifySignature computation: FAILED (%s)\n",
-             retcode_strings[result]);
-  }
+    TEST("hssVerifySignature", SIG_INVALID_SIG, hssVerifySignature(hss_msg_corrupt,
+                                                          testVectors[v].msgLen,
+                                                          testVectors[v].sig,
+                                                          testVectors[v].sigLen,
+                                                          testVectors[v].key,
+                                                          testVectors[v].keyLen));
+    IF_PASS_MSG
 
-  if (1) {
+    printf("HSS Verify Flash Sig tests:");
+
     uint32_t signatureOffset = 0;
     size_t scratchLen = QUARK_SCRATCH_SIZE;
     uint8_t scratchBuff[scratchLen];
 
     // Copy signature info into the g_flashBuff
-    memcpy(&g_flashBuff[signatureOffset], hss_sig, sigLen);
+    memcpy(&g_flashBuff[signatureOffset], testVectors[v].sig, testVectors[v].sigLen);
 
     g_flashCnt = 0;
     g_flashBytesRead = 0;
-    result = hssVerifySignatureFlash(hss_msg,
-                                     msgLen,
-                                     signatureOffset,
-                                     sigLen,
-                                     hss_pubKey,
-                                     keyLen,
-                                     scratchBuff,
-                                     scratchLen);
-    if (SIG_OK == result)
-      printf("[RESULTS] hssVerifySignature computation: PASSED (%s)\n",
-             retcode_strings[result]);
-    else
-      printf("[RESULTS] hssVerifySignature computation: FAILED (%s)\n",
-             retcode_strings[result]);
+    TEST("hssVerifySignatureFlash", SIG_OK, hssVerifySignatureFlash(testVectors[v].msg,
+                                                              testVectors[v].msgLen,
+                                                              signatureOffset,
+                                                              testVectors[v].sigLen,
+                                                              testVectors[v].key,
+                                                              testVectors[v].keyLen,
+                                                              scratchBuff,
+                                                              scratchLen));
 
     g_flashCnt = 0;
     g_flashBytesRead = 0;
-    result = hssVerifySignatureFlash(hss_msg_corrupt,
-                                     msgLen,
-                                     signatureOffset,
-                                     sigLen,
-                                     hss_pubKey,
-                                     keyLen,
-                                     scratchBuff,
-                                     scratchLen);
-    if (SIG_OK != result)
-      printf("[RESULTS] corrupted hssVerifySignature computation: PASSED (%s)\n",
-             retcode_strings[result]);
-    else
-      printf("[RESULTS] corrupted hssVerifySignature computation: FAILED (%s)\n",
-             retcode_strings[result]);
-
+    TEST("hssVerifySignatureFlash", SIG_INVALID_SIG, hssVerifySignatureFlash(hss_msg_corrupt,
+                                                                        testVectors[v].msgLen,
+                                                                        signatureOffset,
+                                                                        testVectors[v].sigLen,
+                                                                        testVectors[v].key,
+                                                                        testVectors[v].keyLen,
+                                                                        scratchBuff,
+                                                                        scratchLen));
+    IF_PASS_MSG
   }
 
+  if(g_numberOfTestFailures != 0){
+    printf("\n%d tests FAILED\n", g_numberOfTestFailures);
+    return 1;
+  }
+
+  printf("\nAll tests PASSED\n");
   return 0;
 }
