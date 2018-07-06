@@ -35,12 +35,6 @@ To address this, Google is collaborating with Stanford University, one of our Ac
 
 There are currently no plans to productize, or officially support this code at this time. This will continue to be work-in-progress for the forseeable future. You are encouraged to leverage this code in your own experiments, and we welcome collaboration. 
 
-
-
-
-The verification code is contained in the ```src``` module and various 
-test programs are in the ```test``` module.
-
 ## Building
 Simple recursive Makefiles are provided arr the root and module levels.  
 The outputs of these Makefiles are libraries in the ```src/hss``` and 
