@@ -1,5 +1,5 @@
 # Project Quark
-## Post-Quantum Verified Boot for IoT Devices
+__Post-Quantum Verified Boot for IoT Devices__
 
 This repository contains work-in-progress hash-based signature verification code that is
 optimized for low-end ARM-based IoT devices. 
