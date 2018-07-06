@@ -22,6 +22,7 @@
 #include <time.h>
 #include <test_vector.h>
 #include "verify.h"
+#include "macros.h"
 
 /* List of header files containing XMSS reference vectors to be tested, please ensure    */
 /* that one and only one of these is uncommented                                         */
@@ -289,78 +290,57 @@ int main(void) {
 #endif  /* _QUARK_TEST_REF_001_H_ */
 
       /* Putting it all together to test xmssVerifySignature( ) */
-      if (1) {
-        printf("-------------- Testing xmssVerifySignature( ) --------------\n");
-        result = xmssVerifySignature(testVectors[v].msg,
-                                     testVectors[v].msgLen,
-                                     testVectors[v].sig,
-                                     testVectors[v].sigLen,
-                                     testVectors[v].key,
-                                     testVectors[v].keyLen);
-        if (SIG_OK == result)
-          printf("[RESULTS] xmssVerifySignature computation: PASSED\n");
-        else
-          printf("[RESULTS] xmssVerifySignature computation: FAILED\n");
+      printf("Testing xmssVerifySignature");
+      TEST("xmssVerifySignature", SIG_OK, xmssVerifySignature(testVectors[v].msg,
+                                                              testVectors[v].msgLen,
+                                                              testVectors[v].sig,
+                                                              testVectors[v].sigLen,
+                                                              testVectors[v].key,
+                                                              testVectors[v].keyLen));
 
-        /* Tweak the message by a single bit and do it again, taking care to */
-        /* pass iff signature result is false since we've corrupted it       */
-
-        result = xmssVerifySignature(msg_corrupt,
-                                     testVectors[v].msgLen,
-                                     testVectors[v].sig,
-                                     testVectors[v].sigLen,
-                                     testVectors[v].key,
-                                     testVectors[v].keyLen);
-        if (SIG_OK == result)
-          printf("[RESULTS] corrupted xmssVerifySignature computation: FAILED\n");
-        else
-          printf("[RESULTS] corrupted xmssVerifySignature computation: PASSED\n");
-      }
+      /* Tweak the message by a single bit and do it again, taking care to */
+      /* pass iff signature result is false since we've corrupted it       */
+      TEST("xmssVerifySignature", SIG_INVALID_SIG, xmssVerifySignature(msg_corrupt,
+                                                                       testVectors[v].msgLen,
+                                                                       testVectors[v].sig,
+                                                                       testVectors[v].sigLen,
+                                                                       testVectors[v].key,
+                                                                       testVectors[v].keyLen));
+      IF_PASS_MSG
 
       /* Putting it all together to test xmssVerifySignatureFlash( ) */
-      if (1) {
-        uint32_t signatureOffset = 0;
-        size_t scratchLen = QUARK_SCRATCH_SIZE;
-        uint8_t scratchBuff[scratchLen];
+      uint32_t signatureOffset = 0;
+      size_t scratchLen = QUARK_SCRATCH_SIZE;
+      uint8_t scratchBuff[scratchLen];
 
-        // Copy signature info into the g_flashBuff
-        memcpy(&g_flashBuff[signatureOffset], testVectors[v].sig, testVectors[v].sigLen);
+      // Copy signature info into the g_flashBuff
+      memcpy(&g_flashBuff[signatureOffset], testVectors[v].sig, testVectors[v].sigLen);
 
-        printf("-------------- Testing xmssVerifySignatureFlash( ) --------------\n");
-        g_flashCnt = 0;
-        g_flashBytesRead = 0;
-        result = xmssVerifySignatureFlash(testVectors[v].msg,
-                                          testVectors[v].msgLen,
-                                          signatureOffset,
-                                          testVectors[v].sigLen,
-                                          testVectors[v].key,
-                                          testVectors[v].keyLen,
-                                          scratchBuff,
-                                          scratchLen);
-        if (SIG_OK == result)
-          printf("[RESULTS] xmssVerifySignatureFlash computation: PASSED\n");
-        else
-          printf("[RESULTS] xmssVerifySignatureFlash computation: FAILED\n");
+      printf("Testing xmssVerifySignatureFlash");
+      g_flashCnt = 0;
+      g_flashBytesRead = 0;
+      TEST("xmssVerifySignatureFlash", SIG_OK, xmssVerifySignatureFlash(testVectors[v].msg,
+                                                                        testVectors[v].msgLen,
+                                                                        signatureOffset,
+                                                                        testVectors[v].sigLen,
+                                                                        testVectors[v].key,
+                                                                        testVectors[v].keyLen,
+                                                                        scratchBuff,
+                                                                        scratchLen));
 
-        /* Tweak the message by a single bit and do it again, taking care to */
-        /* pass iff signature result is false since we've corrupted it       */
-        g_flashCnt = 0;
-        g_flashBytesRead = 0;
-        result = xmssVerifySignatureFlash(msg_corrupt,
-                                          testVectors[v].msgLen,
-                                          signatureOffset,
-                                          testVectors[v].sigLen,
-                                          testVectors[v].key,
-                                          testVectors[v].keyLen,
-                                          scratchBuff,
-                                          scratchLen);
-        if (SIG_OK == result)
-          printf(
-              "[RESULTS] corrupted xmssVerifySignatureFlash computation: FAILED\n");
-        else
-          printf(
-              "[RESULTS] corrupted xmssVerifySignatureFlash computation: PASSED\n");
-      }
+      /* Tweak the message by a single bit and do it again, taking care to */
+      /* pass iff signature result is false since we've corrupted it       */
+      g_flashCnt = 0;
+      g_flashBytesRead = 0;
+      TEST("xmssVerifySignatureFlash", SIG_INVALID_SIG, xmssVerifySignatureFlash(msg_corrupt,
+                                                                                 testVectors[v].msgLen,
+                                                                                 signatureOffset,
+                                                                                 testVectors[v].sigLen,
+                                                                                 testVectors[v].key,
+                                                                                 testVectors[v].keyLen,
+                                                                                 scratchBuff,
+                                                                                 scratchLen));
+      IF_PASS_MSG
     }
   }
 
@@ -391,79 +371,61 @@ int main(void) {
       msg_corrupt[8] ^= 0x1;
 
       /* Putting it all together to test xmssMtVerifySignature( ) */
-      if (1) {
-        printf("-------------- Testing xmssMtVerifySignature( ) --------------\n");
-        result = xmssMtVerifySignature(testVectors[v].msg,
-                                       testVectors[v].msgLen,
-                                       testVectors[v].sig,
-                                       testVectors[v].sigLen,
-                                       testVectors[v].key,
-                                       testVectors[v].keyLen);
-        if (SIG_OK == result)
-          printf("[RESULTS] xmssMtVerifySignature computation: PASSED\n");
-        else
-          printf("[RESULTS] xmssMtVerifySignature computation: FAILED (%d)\n",
-                 result);
+      printf("Testing xmssMtVerifySignature");
+      TEST("xmssMtVerifySignature", SIG_OK, xmssMtVerifySignature(testVectors[v].msg,
+                                                                  testVectors[v].msgLen,
+                                                                  testVectors[v].sig,
+                                                                  testVectors[v].sigLen,
+                                                                  testVectors[v].key,
+                                                                  testVectors[v].keyLen));
 
-        /* Tweak the message by a single bit and do it again, taking care to */
-        /* pass iff signature result is false since we've corrupted it       */
-        result = xmssMtVerifySignature(msg_corrupt,
-                                       testVectors[v].msgLen,
-                                       testVectors[v].sig,
-                                       testVectors[v].sigLen,
-                                       testVectors[v].key,
-                                       testVectors[v].keyLen);
-        if (SIG_OK == result)
-          printf("[RESULTS] corrupted xmssMtVerifySignature computation: FAILED\n");
-        else
-          printf("[RESULTS] corrupted xmssMtVerifySignature computation: PASSED\n");
-      }
-
+      /* Tweak the message by a single bit and do it again, taking care to */
+      /* pass iff signature result is false since we've corrupted it       */
+      TEST("xmssMtVerifySignature", SIG_INVALID_SIG, xmssMtVerifySignature(msg_corrupt,
+                                                                           testVectors[v].msgLen,
+                                                                           testVectors[v].sig,
+                                                                           testVectors[v].sigLen,
+                                                                           testVectors[v].key,
+                                                                           testVectors[v].keyLen));
+IF_PASS_MSG
       /* Putting it all together to test xmssMtVerifySignatureFlash( ) */
-      if (1) {
-        uint32_t signatureOffset = 0;
-        size_t scratchLen = QUARK_SCRATCH_SIZE;
-        uint8_t scratchBuff[scratchLen];
+      uint32_t signatureOffset = 0;
+      size_t scratchLen = QUARK_SCRATCH_SIZE;
+      uint8_t scratchBuff[scratchLen];
 
-        // Copy signature info into the g_flashBuff
-        memcpy(&g_flashBuff[signatureOffset], testVectors[v].sig, testVectors[v].sigLen);
+      // Copy signature info into the g_flashBuff
+      memcpy(&g_flashBuff[signatureOffset], testVectors[v].sig, testVectors[v].sigLen);
 
-        printf(
-            "-------------- Testing xmssMtVerifySignatureFlash( ) --------------\n");
-        g_flashCnt = 0;
-        g_flashBytesRead = 0;
-        result = xmssMtVerifySignatureFlash(testVectors[v].msg,
-                                            testVectors[v].msgLen,
-                                            signatureOffset,
-                                            testVectors[v].sigLen,
-                                            testVectors[v].key,
-                                            testVectors[v].keyLen,
-                                            scratchBuff,
-                                            scratchLen);
-        if (SIG_OK == result)
-          printf("[RESULTS] xmssMtVerifySignatureFlash computation: PASSED\n");
-        else
-          printf("[RESULTS] xmssMtVerifySignatureFlash computation: FAILED (%d)\n",
-                 result);
-
-        g_flashCnt = 0;
-        g_flashBytesRead = 0;
-        result = xmssMtVerifySignatureFlash(msg_corrupt,
-                                            testVectors[v].msgLen,
-                                            signatureOffset,
-                                            testVectors[v].sigLen,
-                                            testVectors[v].key,
-                                            testVectors[v].keyLen,
-                                            scratchBuff,
-                                            scratchLen);
-        if (SIG_OK == result)
-          printf(
-              "[RESULTS] corrupted xmssMtVerifySignatureFlash computation: FAILED\n");
-        else
-          printf(
-              "[RESULTS] corrupted xmssMtVerifySignatureFlash computation: PASSED\n");
-      }
+      printf("Testing xmssMtVerifySignatureFlash");
+      g_flashCnt = 0;
+      g_flashBytesRead = 0;
+      TEST("xmssMtVerifySignatureFlash", SIG_OK, xmssMtVerifySignatureFlash(testVectors[v].msg,
+                                                                            testVectors[v].msgLen,
+                                                                            signatureOffset,
+                                                                            testVectors[v].sigLen,
+                                                                            testVectors[v].key,
+                                                                            testVectors[v].keyLen,
+                                                                            scratchBuff,
+                                                                            scratchLen));
+      g_flashCnt = 0;
+      g_flashBytesRead = 0;
+      TEST("xmssMtVerifySignatureFlash", SIG_INVALID_SIG, xmssMtVerifySignatureFlash(msg_corrupt,
+                                                                                     testVectors[v].msgLen,
+                                                                                     signatureOffset,
+                                                                                     testVectors[v].sigLen,
+                                                                                     testVectors[v].key,
+                                                                                     testVectors[v].keyLen,
+                                                                                     scratchBuff,
+                                                                                     scratchLen));
+      IF_PASS_MSG
     }
   }
+
+  if(g_numberOfTestFailures != 0){
+    printf("\n%d tests FAILED\n", g_numberOfTestFailures);
+    return 1;
+  }
+
+  printf("\nAll tests PASSED\n");
   return 0;
 }
