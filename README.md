@@ -19,7 +19,7 @@ One possible attack would be due to sufficiently large quantum computers that co
 
 Hash-based signatures are believed to be resilient against quantum attacks, have been around for a few decades and hence are well-understood from a security perspective. They can be efficient, but their signature sizes tend to be larger than RSA/ECDSA equivalents. 
 
-These hash-based signatures can be either stateful or stateless, and the former tend to provide more compact signatures than the latter. There are are two candidate standards for stateful signatures, currently IETF drafts, expected to become RFCs:
+These hash-based signatures can be either stateful or stateless, and the former tend to provide more compact signatures than the latter. There are two candidate standards for stateful signatures, currently IETF drafts, expected to become RFCs:
 
 1. XMSS
 2. HSS
