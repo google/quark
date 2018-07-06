@@ -286,7 +286,7 @@ void testSubfunctions() {
                          msg_001,
                          2290,
                          &params);
-    if (!memcmp(messageHash, mhash_001, params.n) && result)
+    if (!memcmp(messageHash, mhash_001, params.n) && (SIG_OK == result))
       printf("[RESULTS] message hash computation: PASSED\n");
     else
       printf("[RESULTS] message hash computation: FAILED\n");
@@ -313,7 +313,7 @@ void testSubfunctions() {
                           adrs,
                           &params);
 
-    if (!memcmp(computedPk, wots_pk_001, params.otsSigLen) && result)
+    if (!memcmp(computedPk, wots_pk_001, params.otsSigLen) && (SIG_OK == result))
       printf("[RESULTS] WOTS+ Pk computation: PASSED\n");
     else
       printf("[RESULTS] WOTS+ Pk computation: FAILED\n");
@@ -332,7 +332,7 @@ void testSubfunctions() {
                         pk_001 + XMSS_PUB_SEED_OFFSET(params.n),
                         adrs,
                         &params);
-    if (!memcmp(computedLeaf, leaf_001, params.n) && result)
+    if (!memcmp(computedLeaf, leaf_001, params.n) && (SIG_OK == result))
       printf("[RESULTS] ltreeSmall computation: PASSED\n");
     else
       printf("[RESULTS] ltreeSmall computation: FAILED\n");
@@ -353,7 +353,7 @@ void testSubfunctions() {
                          adrs,
                          idx,
                          &params);
-    if (!memcmp(computedRoot, root_001, params.n) && result)
+    if (!memcmp(computedRoot, root_001, params.n) && (SIG_OK == result))
       printf("[RESULTS] computeRoot computation: PASSED\n");
     else
       printf("[RESULTS] computeRoot computation: FAILED\n");
