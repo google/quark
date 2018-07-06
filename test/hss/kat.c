@@ -37,6 +37,7 @@
 #include "hss_ref_60_3.h"
 #include "test_vector.h"
 #include "macros.h"
+#include "ret_code_strings.h"
 
 #define FILE_INCREMENT 20000
 

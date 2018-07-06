@@ -25,13 +25,10 @@
 extern "C" {
 #endif
 
-#include <stdio.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include "sha256.h"
 #include "hash_wrappers.h"
-#include "endian_utils.h"
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Constant Definitions */
@@ -68,46 +65,46 @@ extern "C" {
 /* OTS hash format */
 #define OTS_I_OFFSET                0
 #define OTS_q_OFFSET                I_LEN
-#define OTS_i_OFFSET                ( I_LEN + q_LEN )
-#define OTS_j_OFFSET                ( I_LEN + q_LEN + i_LEN )
-#define OTS_TMP_OFFSET              ( I_LEN + q_LEN + i_LEN + j_LEN )
+#define OTS_i_OFFSET              ( I_LEN + q_LEN )
+#define OTS_j_OFFSET              ( I_LEN + q_LEN + i_LEN )
+#define OTS_TMP_OFFSET            ( I_LEN + q_LEN + i_LEN + j_LEN )
 #define OTS_OFFSET(len)           ( OTS_TMP_OFFSET + ( len ) )
 #define OTS_MAX_LEN                 OTS_OFFSET( MAX_HASH_LEN )
 
 /* OTS Kc hash format (only need to specify D/Z locations as we'll be sharing */
 /* the OTS hash buffer and the I q fields remain the same)                    */
-#define OTS_D_OFFSET                ( I_LEN + q_LEN )
-#define OTS_Z_OFFSET                ( I_LEN + q_LEN + D_LEN )
+#define OTS_D_OFFSET              ( I_LEN + q_LEN )
+#define OTS_Z_OFFSET              ( I_LEN + q_LEN + D_LEN )
 
 /* Merkle tree internal nodes hashing format */
 #define TREEINT_I_OFFSET            0                      // unused
 #define TREEINT_q_OFFSET            I_LEN                  // unused
-#define TREEINT_D_OFFSET            ( I_LEN + q_LEN )      // unused
-#define TREEINT_PK_OFFSET           ( I_LEN + q_LEN + D_LEN )
+#define TREEINT_D_OFFSET          ( I_LEN + q_LEN )      // unused
+#define TREEINT_PK_OFFSET         ( I_LEN + q_LEN + D_LEN )
 #define TREEINT_OFFSET(len)       ( TREEINT_PK_OFFSET + 2 * ( len ) )
 #define TREEINT_MAX_LEN             TREEINT_OFFSET( MAX_HASH_LEN )
 
 /* Merkle tree leaf nodes hashing format */
 #define TREELEAF_I_OFFSET           0
 #define TREELEAF_q_OFFSET           I_LEN
-#define TREELEAF_D_OFFSET           ( I_LEN + q_LEN )
-#define TREELEAF_PK_OFFSET          ( I_LEN + q_LEN + D_LEN )
+#define TREELEAF_D_OFFSET         ( I_LEN + q_LEN )
+#define TREELEAF_PK_OFFSET        ( I_LEN + q_LEN + D_LEN )
 #define TREELEAF_OFFSET(len)      ( TREELEAF_PK_OFFSET + ( len ) )
 #define TREELEAF_MAX_LEN            TREELEAF_OFFSET( MAX_HASH_LEN )
 
 /* Message hasing format */
 #define MSG_I_OFFSET                0
 #define MSG_q_OFFSET                I_LEN
-#define MSG_D_OFFSET                ( I_LEN + q_LEN )
-#define MSG_C_OFFSET                ( I_LEN + q_LEN + D_LEN )
+#define MSG_D_OFFSET              ( I_LEN + q_LEN )
+#define MSG_C_OFFSET              ( I_LEN + q_LEN + D_LEN )
 #define MSG_MSG_OFFSET(len)       ( I_LEN + q_LEN + D_LEN + ( len ) )
 #define MSG_MAX_LEN                 MSG_MSG_OFFSET( MAX_HASH_LEN )
 
 /* OTS Public Key format */
 #define OTS_KEY_TYPE_OFFSET         0
 #define OTS_KEY_I_OFFSET            TYPE_LEN
-#define OTS_KEY_q_OFFSET            ( TYPE_LEN + I_LEN )
-#define OTS_KEY_K_OFFSET            ( TYPE_LEN + I_LEN + q_LEN )
+#define OTS_KEY_q_OFFSET          ( TYPE_LEN + I_LEN )
+#define OTS_KEY_K_OFFSET          ( TYPE_LEN + I_LEN + q_LEN )
 #define OTS_KEY_OFFSET(n)         ( TYPE_LEN + I_LEN + q_LEN + ( n ) )
 
 /* OTS Signature format */
@@ -119,8 +116,8 @@ extern "C" {
 /* LMS Public Key format */
 #define LMS_KEY_LMS_TYPE_OFFSET     0
 #define LMS_KEY_OTS_TYPE_OFFSET     TYPE_LEN
-#define LMS_KEY_I_OFFSET            ( TYPE_LEN + TYPE_LEN )
-#define LMS_KEY_T1_OFFSET           ( TYPE_LEN + TYPE_LEN + I_LEN )
+#define LMS_KEY_I_OFFSET          ( TYPE_LEN + TYPE_LEN )
+#define LMS_KEY_T1_OFFSET         ( TYPE_LEN + TYPE_LEN + I_LEN )
 
 /* LMS Signature format */
 #define LMS_SIG_q_OFFSET            0
