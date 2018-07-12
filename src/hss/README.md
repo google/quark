@@ -1,0 +1,25 @@
+# HSS Verification Library
+This directory contains all of the necessary files to build an HSS signature verification primitive using a generic GNU Makefile-based build chain.
+
+ * ```README.md``` - This file.
+ * ```CMakeLists.txt``` - CMake configuration file for generating Makefile(s).
+ * ```verify.c/h``` - Primary HSS verification code that handles all of the main functions required to perform HSS.  The header file in particular is where you will find all interesting definitions and data types.
+ * ```Doxyfile``` - Basic default doxygen configuration file which will generate a C-targeted documentation file set under the doc/ subdirectory.  All of the source files, except for the simple demo.c/kat.c/test.c utilities, are formatted to be doxygen-compatible.
+ * ```Makefile``` - Very simple make file that will build the various parts of the project.
+
+## Flash/Cache/Scratch Details:
+
+The emulated flash interface was designed without a access to the actual interface implementation.  As such the code is a bit odd, and not structured in an optimal way, so it deserves a bit of explanation. Functions of the form `<*>Flash( )`, are the emulated flash versions of memory-based functions (e.g., `hssVerifySignatureFlash( )` is an emulated flash version of `hssVerifySignature( )`). These emulated flash variants differ from their memory-based counterparts only in that they expect the signature to be passed in as an offset value, and they require a scratch buffer to be passed in as well (note that this scratch buffer is a separate from any flash cache that has been defined... but more on that later).  Refer to ```verify.c``` and ```verify.h``` for examples of the two variants.
+
+The "FLASH" is emulated using a global array `g_flashBuff[]` defined in ```verify.h```, and an example of its use can be found in ```kat.c``` where the signature is read from the header file and then memcpy'd into `g_flashBuff[]` at a given offset, which is what is passed in to `hssVerifySignatureFlash( )`.  Any accesses to the flash are ultimately passed through the `nlflash_read( )` dummy call defined in ```verify.c``` which does a memcpy out of `g_flashBuff[]` using the offset it's given.  The call to `nlflash_read( )` is in turn abstracted away via the function `flashcpy( )` which is an attempt to emulate the `memcpy( )`function while adding some simple error checking (e.g., if the requested number of bytes were able to be read).  The intent was to make it simple to drop in the emulated flash interface by just swapping out `memcpy( )` operations for `flashcpy( )` operations when accessing the signature vector which is stored in FLASH as it is too large to fit in the device's available RAM.
+
+Given the expected penalties associated with flash access (i.e., 10ms access + 1us per byte to read data), it became apparent that flash accesses needed to be coalesced to try and avoid the 10ms access penalty.  This necessitated the use of a flash cache (`g_cache[]` defined in ```verify.c``` along with its state variables) which is used to pre-fetch blocks of flash data into a RAM buffer.  A very simple caching strategy is used that tracks the portion of the flash that is currently stored in the cache, and future flash access requests are compared against this region to see if they fall within it (i.e., is completely contained within the cache).  If they are then `memcpy( )` can be used to copy the data from the cache to its destination. If not, then a new flash access is initiated to refill the cache with the flash region starting at the requested offset.  The intent is to keep things very simple so more elaborate replacement strategies were not considered. The caching is enabled via the `QUARK_USE_FLASH_CACHE` flag defined in ```verify.h``` (along with `QUARK_CACHE_SIZE` which defines the size of the `g_cache[]` array). When this flag is defined it defines a variant of `flashcpy( )` called `flashcpy_cached( )` which implements the aforementioned caching behaviour, and which is a drop-in replacement for `flashcpy( )`.  Both versions are found within the code to allow the user to experiment with them to see how things actually work on the final hardware platform.
+
+As mentioned before, the scratch buffer is separate from the flash cache, and its minimum size is currently defined in ```verify.h``` via `QUARK_SCRATCH_SIZE`. This scratch buffer will need to be allocated by the user and passed in via reference (along with its length in bytes) to the top level signature verification primitive if `<*>Flash( )`
+variants are to be used
+
+All of the above functionality can be observed in the ```../../test/hss/kat.c``` utility which includes examples of how to configure and setup the various options related to flash, caching, and scratch buffers.
+
+## Documentation:
+
+All of the source code (minus any utility scripts) is formatted to be Doxygen-compatible to facilitate generation of a documentation package using the given basic Doxyfile configuration which will generate the documentation tree under the doc/ subdirectory.

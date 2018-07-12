@@ -1,9 +1,0 @@
-# Build-related files
-*.o
-*.a
-demo
-test
-kat
-
-# Emacs backup files
-*~
